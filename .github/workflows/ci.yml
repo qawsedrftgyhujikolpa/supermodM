@@ -24,16 +24,27 @@ jobs:
           fi
       - name: Build
         run: |
+          mkdir -p buildlogs
           # Prefer system gradle if installed, otherwise fall back to wrapper if present
           if command -v gradle >/dev/null 2>&1; then
-            gradle build --no-daemon --stacktrace
+            gradle build --no-daemon --stacktrace | tee buildlogs/gradle_build.log
+            exit ${PIPESTATUS[0]}
           elif [ -f ./gradlew ]; then
-            ./gradlew build --no-daemon --stacktrace
+            ./gradlew build --no-daemon --stacktrace | tee buildlogs/gradle_build.log
+            exit ${PIPESTATUS[0]}
           else
-            echo "No gradle available and no gradle wrapper present" >&2
+            echo "No gradle available and no gradle wrapper present" | tee buildlogs/gradle_build.log >&2
             exit 1
           fi
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-build-log
+          path: buildlogs/gradle_build.log
+
       - name: Upload artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: fabric-optmod-jar
