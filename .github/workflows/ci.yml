@@ -29,3 +29,8 @@ jobs:
           fi
       - name: Build
         run: ./gradlew build --no-daemon --stacktrace
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fabric-optmod-jar
+          path: build/libs/*.jar
