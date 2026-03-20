@@ -16,10 +16,22 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - name: Run Gradle build (action)
-        uses: gradle/gradle-build-action@v2
+      - name: Install Gradle
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gradle
+      - name: Build
+        run: |
+          mkdir -p buildlogs
+          gradle --version
+          gradle build --no-daemon --stacktrace | tee buildlogs/gradle_build.log
+          exit ${PIPESTATUS[0]}
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          arguments: build --no-daemon --stacktrace
+          name: gradle-build-log
+          path: buildlogs/gradle_build.log
 
       - name: Upload artifact
         if: success()
